@@ -1,0 +1,3 @@
+import buddy
+
+buddy.run()
