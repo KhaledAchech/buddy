@@ -1,7 +1,7 @@
 import speech_recognition as sr
 import gtts
-from transformers import GPT2Tokenizer, GPT2LMHeadModel
-import torch
+import requests
+import json
 import os
 
 def run():
@@ -14,17 +14,27 @@ def run():
     command = recognizer.recognize_google(audio)
     print("You said: " + command)
 
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-    model = GPT2LMHeadModel.from_pretrained("gpt2")
-    input_ids = torch.tensor(tokenizer.encode(command)).unsqueeze(0)  # Batch size 1
-    outputs = model(input_ids, labels=input_ids)
-    loss, logits = outputs[:2]
-    response = tokenizer.decode(torch.argmax(logits[0, -1]), skip_special_tokens=True)
+    api_key = "YOUR_API_KEY"
+    prompt = command
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
+    data = """
+    {
+        """
+    data += f'"prompt": "{prompt}",'
+    data += """
+        "model": "text-davinci-002",
+        "temperature": 0.5,
+        "max_tokens":100
+    }
+    """
+
+    resp = requests.post("https://api.openai.com/v1/engines/davinci/completions",
+                         headers=headers, data=data)
+
+    result = json.loads(resp.text)
+    response = result['choices'][0]['text']
 
     print(response)
     tts = gtts.gTTS(text=response, lang='en')
     tts.save("response.mp3")
     os.system("start response.mp3")
-
-if __name__ == '__main__':
-    run()

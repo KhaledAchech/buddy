@@ -12,6 +12,8 @@ pip install buddy
 
 ## Usage
 
+change the value of the 'api_key' variable
+
 ```code
 import buddy
 
